@@ -33,11 +33,11 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
     <div className="space-y-5">
       <section className="hero-panel">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-normal text-[#53b1ff]">
             <Globe2 size={15} />
             Network discovery
           </div>
-          <h2 className="mt-3 text-2xl font-bold text-white">搜索网络公开图片源</h2>
+          <h2 className="mt-3 text-[35px] font-light leading-tight text-white">搜索网络公开图片源</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
             纯静态站不能绕过登录、反爬或 CORS。这里优先搜索允许浏览器跨域读取的公开图片源；其他站点会作为外部入口打开，由你复制原图 URL 或下载后导入。
           </p>
@@ -101,14 +101,14 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  className="button-primary h-9 text-xs"
+                  className="button-primary h-10 px-4 text-xs"
                   type="button"
                   onClick={() => onImportUrl(result.imageUrl, result.pageUrl, result.title)}
                 >
                   <ImageDown size={14} />
                   导入原图
                 </button>
-                <a className="button-secondary h-9 text-xs" href={result.imageUrl} target="_blank">
+                <a className="button-secondary h-10 px-4 text-xs" href={result.imageUrl} target="_blank">
                   原图
                   <ExternalLink size={13} />
                 </a>

@@ -26,21 +26,30 @@
 
 ## 设计系统
 
-项目根目录包含：
+当前项目已实际运行：
+
+```bash
+npx getdesign@latest add playstation
+npx getdesign@latest add pinterest
+```
+
+生成文件：
+
+```text
+DESIGN.md
+pinterest/DESIGN.md
+```
+
+项目执行规范文件：
 
 ```text
 design/DESIGN.md
 ```
 
-默认设计方向是 PlayStation + Pinterest + 媒体编辑工具：
+当前 UI 按混合规则实现：
 
-- 暗色优先
-- 高对比
-- 图片瀑布流/网格为主
-- 左侧筛选栏
-- 中间素材网格
-- 右侧素材详情面板
-- 清楚的裁切预设和导出按钮
+- PlayStation 负责主应用外壳、黑/白/蓝体系、全圆角 CTA、工具型面板和裁切页面。
+- Pinterest 负责图片瀑布流、16px pin 卡片、8px gutter 和图片优先的发现体验。
 
 ### 如何从 getdesign.md 选择风格
 
@@ -52,12 +61,12 @@ design/DESIGN.md
 design/DESIGN.md
 ```
 
-4. 根据新规范调整 `src/index.css` 里的设计 token 和组件样式。
+4. 根据新规范调整 `design/DESIGN.md` 的混合执行规则。
 5. 重新运行项目。
 
 ### 如何修改默认主题
 
-默认主题 token 主要在：
+主题 token 主要在：
 
 ```text
 src/index.css

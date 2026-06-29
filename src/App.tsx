@@ -251,10 +251,10 @@ function App() {
         openFiles(event.dataTransfer.files)
       }}
     >
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(8,11,18,0.92)] backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-black">
         <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-2">
           <div className="flex min-w-[190px] items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[linear-gradient(135deg,#2f6bff,#18d2ff)] text-white shadow-[0_0_32px_rgba(47,107,255,0.35)]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] text-white">
               <Database size={18} />
             </div>
             <div>
@@ -263,7 +263,7 @@ function App() {
             </div>
           </div>
 
-          <div className="flex rounded-lg border border-white/10 bg-white/[0.04] p-1">
+          <div className="flex rounded-full border border-[var(--border)] bg-transparent p-1">
             <button
               className={`workspace-tab ${workspace === 'local' ? 'workspace-tab-active' : ''}`}
               type="button"
@@ -314,19 +314,19 @@ function App() {
             }}
           />
 
-          <button className="button-secondary" type="button" onClick={() => fileInputRef.current?.click()}>
+          <button className="button-secondary top-action" type="button" onClick={() => fileInputRef.current?.click()}>
             <Upload size={16} />
             上传
           </button>
-          <button className="button-secondary" type="button" onClick={() => setUrlModalOpen(true)}>
+          <button className="button-secondary top-action" type="button" onClick={() => setUrlModalOpen(true)}>
             <Link size={16} />
             URL 导入
           </button>
-          <button className="button-secondary" type="button" onClick={exportBackup}>
+          <button className="button-secondary top-action" type="button" onClick={exportBackup}>
             <Download size={16} />
             备份
           </button>
-          <button className="button-secondary" type="button" onClick={() => backupInputRef.current?.click()}>
+          <button className="button-secondary top-action" type="button" onClick={() => backupInputRef.current?.click()}>
             恢复
           </button>
         </div>
@@ -344,7 +344,7 @@ function App() {
                     {filteredAssets.length} / {assets.length} 张素材。数据保存在当前浏览器 IndexedDB。
                   </p>
                 </div>
-                <div className="rounded-md border border-dashed border-white/15 bg-white/[0.04] px-3 py-2 text-xs text-[var(--text-secondary)]">
+                <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs text-[var(--text-secondary)]">
                   可直接拖拽多张图片到页面
                 </div>
               </div>

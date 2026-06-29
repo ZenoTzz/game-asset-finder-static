@@ -98,7 +98,7 @@ export function CropWorkspace({ asset, onBack, onAssetUpdated }: CropWorkspacePr
 
   return (
     <div className="flex h-screen flex-col bg-[var(--app-bg)] text-white">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[rgba(8,11,18,0.92)] px-4">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--border)] bg-black px-4">
         <div className="flex min-w-0 items-center gap-3">
           <button className="icon-button" type="button" onClick={onBack} aria-label="返回">
             <ArrowLeft size={18} />

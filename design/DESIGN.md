@@ -1,85 +1,60 @@
-# Game Asset Finder Default Design System
+# Game Asset Finder Hybrid Design Contract
 
-This file is the local design contract for the app. Replace it with a style copied from getdesign.md when a different direction is selected.
+This project uses the official getdesign outputs generated with:
 
-## Direction
+```bash
+npx getdesign@latest add playstation
+npx getdesign@latest add pinterest
+```
 
-- Default direction: PlayStation + Pinterest + media desk.
-- Product personality: premium game media utility, image-first, fast to scan, editorial.
-- Theme: dark first with high contrast.
+Source files:
 
-## Colors
+- `DESIGN.md`: PlayStation design analysis.
+- `pinterest/DESIGN.md`: Pinterest design analysis.
 
-- Background: `#080b12`
-- Surface: `#101622`
-- Elevated surface: `#151d2b`
-- Border: `#273244`
-- Text primary: `#f8fbff`
-- Text secondary: `#a9b5c8`
-- Text muted: `#6f7d91`
-- Accent blue: `#2f6bff`
-- Accent cyan: `#18d2ff`
-- Success: `#25d07f`
-- Warning: `#f6b54a`
-- Danger: `#ff5c7a`
+## Execution Rule
 
-## Typography
+Use PlayStation for the app shell and editorial media-tool chrome. Use Pinterest for image discovery and masonry behavior.
 
-- Font family: system UI stack.
-- Page title: 18-22px, 700.
-- Section title: 14-16px, 700.
-- Body text: 13-14px, 400.
-- Control text: 13px, 600.
-- Captions and metadata: 11-12px, 500.
+## PlayStation Rules Applied
 
-## Spacing
+- Primary brand color: `#0070d1`.
+- Pressed primary: `#0064b7`.
+- Dark canvas: `#000000`.
+- Dark elevated surface: `#121314`.
+- Dark card surface: `#181818`.
+- White canvas: `#ffffff`.
+- Hairline dark: `rgba(229,229,229,0.2)`.
+- Body dark: `rgba(255,255,255,0.7)`.
+- Primary CTA buttons are full pills, 48px height, bold label.
+- Secondary dark buttons are transparent full pills with dark hairline border.
+- Inputs use 4px radius and 48px height.
+- Utility/product cards use 8px radius unless they are image pins.
+- Avoid decorative gradients on chrome. Imagery and layout carry the visual weight.
+- Avoid resting drop shadows on ordinary cards.
 
-- Base unit: 4px.
-- Compact controls: 8px vertical, 12px horizontal.
-- Panels: 16px.
-- Dense grid gaps: 14-18px.
+## Pinterest Rules Applied
 
-## Radius
+- Masonry is the load-bearing visual system for image results.
+- Pin cards preserve natural image proportions.
+- Pin grid uses tight gutters, targeting 8px.
+- Pin cards use 16px radius.
+- Search controls may use full pill geometry.
+- Empty states and discovery surfaces should get out of the imagery's way.
+- No heavy shadows on pin cards.
 
-- Controls: 8px.
-- Cards: 8px.
-- Panels: 12px maximum.
-- Image corners: 8px.
+## Hybrid Decisions
 
-## Shadows
+- Main app shell: PlayStation dark canvas.
+- Workspace tabs and primary actions: PlayStation Blue pills.
+- Local asset and network result cards: Pinterest pin-card behavior with 16px radius.
+- Inspector/sidebar/forms/crop controls: PlayStation utility chrome.
+- External source chips: pill-shaped compact controls, PlayStation dark variant.
+- Network discovery header: dark PlayStation editorial band, no decorative gradient.
 
-- Prefer border and subtle elevation over heavy shadows.
-- Elevated panels may use `0 18px 60px rgba(0,0,0,.35)`.
+## Component Priorities
 
-## Buttons
-
-- Primary: accent blue background, white text, clear hover.
-- Secondary: transparent dark surface with visible border.
-- Icon buttons: square, border, subtle hover.
-- Active/selected: blue border and faint blue background.
-
-## Cards And Image Grid
-
-- Image grid should be image-first.
-- Use Pinterest-like masonry columns on wide screens.
-- Cards keep metadata compact below image.
-- Hover raises contrast and reveals actions.
-- Selected state uses accent border.
-
-## Forms
-
-- Inputs use dark elevated surfaces, visible border, clear focus ring.
-- Labels are compact uppercase or semibold captions.
-- Error states use danger color on dark red surface.
-
-## Empty States
-
-- Empty states should be centered, compact, and action-oriented.
-- Use short text and direct next action.
-
-## Tool Layout
-
-- Left sidebar: filters and source selection.
-- Center: local library or network image results.
-- Right inspector: selected asset details and import/crop actions.
-- Cropping page: clear presets, large canvas, explicit export controls.
+1. Image grid and network discovery must feel like Pinterest masonry.
+2. Header, sidebars, inspector, and crop workspace must feel like PlayStation media utility chrome.
+3. Upload/import/export modals should use PlayStation dark utility surfaces with clear button hierarchy.
+4. Empty states should be compact, dark, and action-oriented.

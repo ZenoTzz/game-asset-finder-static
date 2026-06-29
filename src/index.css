@@ -1,19 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --app-bg: #080b12;
-  --surface: #101622;
-  --surface-raised: #151d2b;
-  --surface-soft: rgba(255, 255, 255, 0.055);
-  --border: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
-  --text-primary: #f8fbff;
-  --text-secondary: #a9b5c8;
-  --text-muted: #6f7d91;
-  --accent: #2f6bff;
-  --accent-cyan: #18d2ff;
-  --warning: #f6b54a;
-  --danger: #ff5c7a;
+  --app-bg: #000000;
+  --surface: #121314;
+  --surface-raised: #181818;
+  --surface-soft: rgba(245, 247, 250, 0.08);
+  --border: rgba(229, 229, 229, 0.2);
+  --border-strong: rgba(229, 229, 229, 0.32);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(229, 229, 229, 0.55);
+  --accent: #0070d1;
+  --accent-pressed: #0064b7;
+  --accent-active: #004d8d;
+  --pin-red: #e60023;
+  --warning: #c81b3a;
+  --danger: #c81b3a;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text-primary);
@@ -47,28 +49,37 @@ button:disabled {
 
 @layer components {
   .button-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold text-white transition focus:outline-none;
-    background: linear-gradient(135deg, var(--accent), #1952d8);
-    box-shadow: 0 10px 34px rgba(47, 107, 255, 0.22);
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-bold text-white transition focus:outline-none;
+    background: var(--accent);
+    letter-spacing: 0.324px;
   }
 
   .button-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition focus:outline-none;
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-bold transition focus:outline-none;
     color: var(--text-primary);
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.045);
+    background: transparent;
+    letter-spacing: 0.324px;
   }
 
-  .button-secondary:hover,
-  .button-primary:hover {
-    filter: brightness(1.08);
+  .button-primary:active {
+    background: var(--accent-pressed);
+  }
+
+  .button-secondary:active {
+    border-color: rgba(229, 229, 229, 0.38);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .top-action {
+    @apply px-5;
   }
 
   .icon-button {
-    @apply inline-flex h-9 w-9 items-center justify-center rounded-md transition focus:outline-none;
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-full transition focus:outline-none;
     color: var(--text-secondary);
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.045);
+    background: transparent;
   }
 
   .field-label {
@@ -77,10 +88,10 @@ button:disabled {
   }
 
   .field-input {
-    @apply h-10 w-full rounded-md px-3 text-sm font-normal outline-none transition;
+    @apply h-12 w-full rounded px-4 text-base font-normal outline-none transition;
     color: var(--text-primary);
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.055);
+    background: #181818;
   }
 
   .field-input::placeholder {
@@ -88,8 +99,8 @@ button:disabled {
   }
 
   .field-input:focus {
-    border-color: rgba(24, 210, 255, 0.75);
-    box-shadow: 0 0 0 3px rgba(24, 210, 255, 0.12);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 112, 209, 0.32);
   }
 
   textarea.field-input {
@@ -99,31 +110,24 @@ button:disabled {
   .app-sidebar {
     @apply sticky top-16 h-[calc(100vh-64px)] overflow-auto p-4;
     border-right: 1px solid var(--border);
-    background: rgba(10, 15, 25, 0.82);
+    background: var(--app-bg);
   }
 
   .app-inspector {
     @apply sticky top-16 h-[calc(100vh-64px)] overflow-auto p-4;
     border-left: 1px solid var(--border);
-    background: rgba(10, 15, 25, 0.82);
+    background: var(--app-bg);
   }
 
   .asset-card {
-    @apply mb-4 w-full overflow-hidden rounded-lg text-left transition focus:outline-none;
+    @apply mb-2 w-full overflow-hidden rounded-2xl text-left transition focus:outline-none;
     break-inside: avoid;
-    border: 1px solid var(--border);
+    border: 0;
     background: var(--surface-raised);
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
-  }
-
-  .asset-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(24, 210, 255, 0.45);
   }
 
   .asset-card-selected {
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgba(24, 210, 255, 0.18), 0 18px 60px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 0 3px var(--accent);
   }
 
   .tag-muted {
@@ -133,32 +137,32 @@ button:disabled {
   }
 
   .preset-button {
-    @apply flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm transition;
+    @apply flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left text-sm transition;
     color: var(--text-secondary);
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.045);
   }
 
   .preset-button-active {
-    border-color: rgba(24, 210, 255, 0.7);
-    background: rgba(47, 107, 255, 0.16);
+    border-color: var(--accent);
+    background: rgba(0, 112, 209, 0.18);
     color: var(--text-primary);
     font-weight: 700;
   }
 
   .workspace-tab {
-    @apply inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition;
+    @apply inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-bold transition;
     color: var(--text-secondary);
   }
 
   .workspace-tab-active {
     color: white;
-    background: rgba(47, 107, 255, 0.3);
+    background: var(--accent);
   }
 
   .masonry-grid {
     column-count: 1;
-    column-gap: 16px;
+    column-gap: 8px;
   }
 
   @media (min-width: 720px) {
@@ -180,11 +184,10 @@ button:disabled {
   }
 
   .hero-panel {
-    @apply flex flex-col gap-5 rounded-xl p-5 md:flex-row md:items-end md:justify-between;
+    @apply flex flex-col gap-6 p-8 md:flex-row md:items-end md:justify-between;
     border: 1px solid var(--border);
-    background:
-      radial-gradient(circle at top left, rgba(47, 107, 255, 0.22), transparent 34%),
-      linear-gradient(135deg, rgba(21, 29, 43, 0.96), rgba(9, 13, 22, 0.96));
+    border-radius: 0;
+    background: var(--surface);
   }
 
   .network-search-box {
@@ -196,7 +199,7 @@ button:disabled {
   }
 
   .external-link {
-    @apply inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold transition;
+    @apply inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-bold transition;
     color: var(--text-secondary);
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.04);
@@ -204,21 +207,19 @@ button:disabled {
 
   .external-link:hover {
     color: white;
-    border-color: rgba(24, 210, 255, 0.45);
+    border-color: var(--accent);
   }
 
   .network-card {
-    @apply mb-4 overflow-hidden rounded-lg;
+    @apply mb-2 overflow-hidden rounded-2xl;
     break-inside: avoid;
-    border: 1px solid var(--border);
+    border: 0;
     background: var(--surface-raised);
   }
 
   .network-image-frame {
-    @apply relative block min-h-44 overflow-hidden rounded-t-lg;
-    background:
-      linear-gradient(135deg, rgba(47, 107, 255, 0.22), rgba(24, 210, 255, 0.08)),
-      #0b1019;
+    @apply relative block min-h-44 overflow-hidden rounded-t-2xl;
+    background: #121314;
   }
 
   .network-image-frame img:not([hidden]) + .network-image-fallback {
@@ -237,7 +238,7 @@ button:disabled {
   }
 
   .empty-state-dark {
-    @apply flex min-h-[360px] flex-col items-center justify-center rounded-xl text-center;
+    @apply flex min-h-[360px] flex-col items-center justify-center rounded-lg text-center;
     color: var(--text-secondary);
     border: 1px dashed var(--border-strong);
     background: rgba(255, 255, 255, 0.03);

@@ -56,7 +56,7 @@ export function AssetGrid({ assets, selectedId, onSelect }: AssetGridProps) {
           className={`asset-card ${selectedId === asset.id ? 'asset-card-selected' : ''}`}
           onClick={() => onSelect(asset)}
         >
-          <div className="aspect-[16/10] overflow-hidden rounded-t-md bg-slate-100">
+          <div className="overflow-hidden rounded-t-2xl bg-[var(--surface)]">
             <Thumb asset={asset} />
           </div>
           <div className="space-y-2 p-3 text-left">
