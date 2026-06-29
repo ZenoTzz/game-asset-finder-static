@@ -114,4 +114,25 @@ export interface NetworkImageResult {
   height?: number
   license?: string
   mimeType?: string
+  provider?: string
+  official?: boolean
+}
+
+export interface NetworkSearchProvider {
+  id: string
+  label: string
+  enabled: boolean
+}
+
+export interface LocalDownloadRecord {
+  id: string
+  title: string
+  imageUrl: string
+  sourceUrl: string
+  localPath: string
+  localUrl: string
+  contentType: string
+  size: number
+  hash: string
+  createdAt: string
 }

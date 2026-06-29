@@ -1,4 +1,53 @@
-import type { NetworkImageResult } from '../types'
+import type { LocalDownloadRecord, NetworkImageResult, NetworkSearchProvider } from '../types'
+
+const localApiBase = import.meta.env.VITE_LOCAL_API_BASE || 'http://127.0.0.1:8787'
+
+export async function searchNetworkImages(query: string): Promise<{
+  mode: 'local' | 'static'
+  results: NetworkImageResult[]
+  providers: NetworkSearchProvider[]
+}> {
+  try {
+    const response = await fetch(`${localApiBase}/api/search?${new URLSearchParams({ q: query })}`, {
+      signal: AbortSignal.timeout(12000),
+    })
+    if (!response.ok) throw new Error(`本地采集服务搜索失败：${response.status}`)
+    const data = (await response.json()) as { results?: NetworkImageResult[]; providers?: NetworkSearchProvider[] }
+    return { mode: 'local', results: data.results ?? [], providers: data.providers ?? [] }
+  } catch {
+    return {
+      mode: 'static',
+      results: await searchCommonsImages(query),
+      providers: [{ id: 'commons', label: 'Wikimedia Commons fallback', enabled: true }],
+    }
+  }
+}
+
+export async function downloadImageToLocalLibrary(
+  imageUrl: string,
+  sourceUrl: string,
+  title: string,
+): Promise<LocalDownloadRecord> {
+  const response = await fetch(`${localApiBase}/api/download-image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl, sourceUrl, title }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error || `本地下载失败：${response.status}`)
+  return data as LocalDownloadRecord
+}
+
+export async function fetchPageImages(pageUrl: string): Promise<NetworkImageResult[]> {
+  const response = await fetch(`${localApiBase}/api/fetch-page-images`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: pageUrl }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error || `页面解析失败：${response.status}`)
+  return data.results ?? []
+}
 
 interface CommonsSearchResponse {
   query?: {
