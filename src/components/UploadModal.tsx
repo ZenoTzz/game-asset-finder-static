@@ -30,12 +30,12 @@ export function UploadModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4">
-      <div className="w-full max-w-3xl rounded-lg border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-3xl rounded-lg border border-white/10 bg-[var(--surface)] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">{title}</h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <h2 className="text-base font-semibold text-white">{title}</h2>
+            <p className="mt-1 text-xs text-slate-400">
               {fileNames.length} 张图片将使用这组初始信息，之后可以在详情里调整。
             </p>
           </div>
@@ -116,11 +116,11 @@ export function UploadModal({
             </label>
           </div>
 
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-            <div className="text-xs font-semibold text-slate-700">待导入文件</div>
+          <div className="rounded-md border border-white/10 bg-white/[0.035] p-3">
+            <div className="text-xs font-semibold text-slate-300">待导入文件</div>
             <div className="mt-2 max-h-72 space-y-2 overflow-auto">
               {fileNames.map((name) => (
-                <div key={name} className="truncate rounded border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-600">
+                <div key={name} className="truncate rounded border border-white/10 bg-white/[0.05] px-2 py-1.5 text-xs text-slate-300">
                   {name}
                 </div>
               ))}
@@ -130,7 +130,7 @@ export function UploadModal({
 
         {error ? <div className="mx-5 mb-3 rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div> : null}
 
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+        <div className="flex justify-end gap-2 border-t border-white/10 px-5 py-4">
           <button className="button-secondary" type="button" onClick={onCancel}>
             取消
           </button>

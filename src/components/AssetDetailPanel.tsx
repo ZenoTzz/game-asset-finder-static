@@ -14,7 +14,7 @@ export function AssetDetailPanel({ asset, sourceLinks, onCrop, onDelete, onAddLi
   if (!asset) {
     return (
       <aside className="app-inspector">
-        <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-5 text-sm leading-6 text-slate-500">
+        <div className="rounded-md border border-dashed border-white/15 bg-white/[0.04] p-5 text-sm leading-6 text-slate-400">
           选择一张素材后，这里会显示来源、标签、裁切记录和官方资料链接。
         </div>
       </aside>
@@ -25,10 +25,10 @@ export function AssetDetailPanel({ asset, sourceLinks, onCrop, onDelete, onAddLi
     <aside className="app-inspector">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">
+          <h2 className="text-base font-semibold text-white">
             {asset.gameChinese || asset.gameEnglish || '未命名游戏'}
           </h2>
-          <p className="mt-1 break-all text-xs text-slate-500">{asset.originalName}</p>
+          <p className="mt-1 break-all text-xs text-slate-400">{asset.originalName}</p>
         </div>
         <button className="icon-button text-rose-600" type="button" onClick={() => onDelete(asset)} aria-label="删除素材">
           <Trash2 size={17} />
@@ -113,9 +113,9 @@ export function AssetDetailPanel({ asset, sourceLinks, onCrop, onDelete, onAddLi
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
-      <div className="text-[11px] text-slate-500">{label}</div>
-      <div className="mt-1 truncate font-semibold text-slate-900">{value}</div>
+    <div className="rounded-md border border-white/10 bg-white/[0.045] p-2">
+      <div className="text-[11px] text-slate-400">{label}</div>
+      <div className="mt-1 truncate font-semibold text-white">{value}</div>
     </div>
   )
 }
@@ -123,7 +123,7 @@ function Info({ label, value }: { label: string; value: string }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-5 border-t border-slate-200 pt-4">
-      <h3 className="text-xs font-semibold uppercase tracking-normal text-slate-500">{title}</h3>
+      <h3 className="text-xs font-semibold uppercase tracking-normal text-slate-400">{title}</h3>
       <div className="mt-3">{children}</div>
     </section>
   )

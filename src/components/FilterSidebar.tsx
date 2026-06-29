@@ -17,7 +17,7 @@ export function FilterSidebar({ assets, filters, onChange }: FilterSidebarProps)
 
   return (
     <aside className="app-sidebar">
-      <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+      <div className="flex items-center gap-2 text-sm font-semibold text-white">
         <Filter size={16} />
         筛选
       </div>

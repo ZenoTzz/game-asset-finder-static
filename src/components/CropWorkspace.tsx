@@ -97,8 +97,8 @@ export function CropWorkspace({ asset, onBack, onAssetUpdated }: CropWorkspacePr
   }
 
   return (
-    <div className="flex h-screen flex-col bg-slate-100 text-slate-900">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
+    <div className="flex h-screen flex-col bg-[var(--app-bg)] text-white">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[rgba(8,11,18,0.92)] px-4">
         <div className="flex min-w-0 items-center gap-3">
           <button className="icon-button" type="button" onClick={onBack} aria-label="返回">
             <ArrowLeft size={18} />
@@ -125,7 +125,7 @@ export function CropWorkspace({ asset, onBack, onAssetUpdated }: CropWorkspacePr
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-[280px_1fr_320px] gap-0">
-        <aside className="overflow-auto border-r border-slate-200 bg-white p-4">
+        <aside className="overflow-auto border-r border-white/10 bg-[var(--surface)] p-4">
           <h2 className="text-sm font-semibold">裁切预设</h2>
           <div className="mt-3 space-y-2">
             {cropPresets.map((item) => (
@@ -176,7 +176,7 @@ export function CropWorkspace({ asset, onBack, onAssetUpdated }: CropWorkspacePr
           ) : null}
         </section>
 
-        <aside className="overflow-auto border-l border-slate-200 bg-white p-4">
+        <aside className="overflow-auto border-l border-white/10 bg-[var(--surface)] p-4">
           <h2 className="text-sm font-semibold">导出设置</h2>
           <div className="mt-4 space-y-4">
             <label className="field-label">

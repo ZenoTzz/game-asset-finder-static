@@ -1,9 +1,10 @@
-import { Database, Download, Link, Search, Upload } from 'lucide-react'
+import { Database, Download, Globe2, Images, Link, Search, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AssetDetailPanel } from './components/AssetDetailPanel'
 import { AssetGrid } from './components/AssetGrid'
 import { CropWorkspace } from './components/CropWorkspace'
 import { FilterSidebar } from './components/FilterSidebar'
+import { NetworkSearchPanel } from './components/NetworkSearchPanel'
 import { UploadModal } from './components/UploadModal'
 import { UrlImportModal } from './components/UrlImportModal'
 import { db, getAllAssets, getAllSourceLinks, makeGameKey } from './lib/db'
@@ -35,6 +36,8 @@ function App() {
   const [selectedId, setSelectedId] = useState<string>()
   const [cropAsset, setCropAsset] = useState<AssetRecord | null>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters)
+  const [workspace, setWorkspace] = useState<'local' | 'network'>('local')
+  const [networkQuery, setNetworkQuery] = useState('')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [metadata, setMetadata] = useState<AssetMetadataInput>(emptyMetadata)
   const [urlModalOpen, setUrlModalOpen] = useState(false)
@@ -241,31 +244,53 @@ function App() {
 
   return (
     <div
-      className="min-h-screen bg-slate-100 text-slate-900"
+      className="min-h-screen bg-[var(--app-bg)] text-[var(--text-primary)]"
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
         event.preventDefault()
         openFiles(event.dataTransfer.files)
       }}
     >
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(8,11,18,0.92)] backdrop-blur-xl">
         <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-2">
           <div className="flex min-w-[190px] items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-teal-700 text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[linear-gradient(135deg,#2f6bff,#18d2ff)] text-white shadow-[0_0_32px_rgba(47,107,255,0.35)]">
               <Database size={18} />
             </div>
             <div>
               <h1 className="text-base font-semibold leading-5">Game Asset Finder</h1>
-              <p className="text-xs text-slate-500">静态本地素材库</p>
+              <p className="text-xs text-[var(--text-muted)]">Static media asset desk</p>
             </div>
+          </div>
+
+          <div className="flex rounded-lg border border-white/10 bg-white/[0.04] p-1">
+            <button
+              className={`workspace-tab ${workspace === 'local' ? 'workspace-tab-active' : ''}`}
+              type="button"
+              onClick={() => setWorkspace('local')}
+            >
+              <Images size={15} />
+              本地素材
+            </button>
+            <button
+              className={`workspace-tab ${workspace === 'network' ? 'workspace-tab-active' : ''}`}
+              type="button"
+              onClick={() => setWorkspace('network')}
+            >
+              <Globe2 size={15} />
+              网络发现
+            </button>
           </div>
 
           <label className="relative order-last min-w-full flex-1 md:order-none md:min-w-[260px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
             <input
-              className="h-10 w-full rounded-md border border-slate-300 bg-slate-50 pl-9 pr-3 text-sm outline-none transition focus:border-teal-600 focus:bg-white focus:ring-2 focus:ring-teal-600/10"
+              className="field-input pl-9"
               value={filters.query}
-              onChange={(event) => setFilters({ ...filters, query: event.target.value })}
+              onChange={(event) => {
+                setFilters({ ...filters, query: event.target.value })
+                setNetworkQuery(event.target.value)
+              }}
               placeholder="输入游戏中文名、英文名、别名、关键词"
             />
           </label>
@@ -310,18 +335,38 @@ function App() {
       <div className="grid min-h-[calc(100vh-64px)] grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
         <FilterSidebar assets={assets} filters={filters} onChange={setFilters} />
         <main className="min-w-0 p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">本地素材库</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                {filteredAssets.length} / {assets.length} 张素材。数据保存在当前浏览器 IndexedDB。
-              </p>
-            </div>
-            <div className="rounded-md border border-dashed border-slate-300 bg-white px-3 py-2 text-xs text-slate-500">
-              可直接拖拽多张图片到页面
-            </div>
-          </div>
-          <AssetGrid assets={filteredAssets} selectedId={selectedId} onSelect={(asset) => setSelectedId(asset.id)} />
+          {workspace === 'local' ? (
+            <>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold text-white">本地素材库</h2>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    {filteredAssets.length} / {assets.length} 张素材。数据保存在当前浏览器 IndexedDB。
+                  </p>
+                </div>
+                <div className="rounded-md border border-dashed border-white/15 bg-white/[0.04] px-3 py-2 text-xs text-[var(--text-secondary)]">
+                  可直接拖拽多张图片到页面
+                </div>
+              </div>
+              <AssetGrid assets={filteredAssets} selectedId={selectedId} onSelect={(asset) => setSelectedId(asset.id)} />
+            </>
+          ) : (
+            <NetworkSearchPanel
+              query={networkQuery}
+              onQueryChange={setNetworkQuery}
+              onImportUrl={(url, sourceUrl, title) => {
+                setImageUrl(url)
+                setMetadata({
+                  ...emptyMetadata,
+                  sourceUrl,
+                  tags: 'network',
+                  notes: `网络搜索导入：${title}`,
+                })
+                setModalError('')
+                setUrlModalOpen(true)
+              }}
+            />
+          )}
         </main>
         <AssetDetailPanel
           asset={selectedAsset}

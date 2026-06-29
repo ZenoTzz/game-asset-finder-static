@@ -102,3 +102,16 @@ export interface BackupFile {
   assets: Omit<AssetRecord, 'blob' | 'thumbnail'>[]
   sourceLinks: SourceLinkRecord[]
 }
+
+export interface NetworkImageResult {
+  id: string
+  title: string
+  sourceName: string
+  pageUrl: string
+  imageUrl: string
+  thumbUrl: string
+  width?: number
+  height?: number
+  license?: string
+  mimeType?: string
+}

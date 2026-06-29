@@ -23,12 +23,12 @@ export function UrlImportModal({
   onSubmit,
 }: UrlImportModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/30 p-4">
-      <div className="w-full max-w-xl rounded-lg border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-xl rounded-lg border border-white/10 bg-[var(--surface)] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div className="flex items-center gap-2">
-            <Link size={18} className="text-teal-700" />
-            <h2 className="text-base font-semibold text-slate-950">通过图片 URL 导入</h2>
+            <Link size={18} className="text-sky-300" />
+            <h2 className="text-base font-semibold text-white">通过图片 URL 导入</h2>
           </div>
           <button className="icon-button" type="button" onClick={onCancel} aria-label="关闭">
             <X size={18} />
@@ -78,7 +78,7 @@ export function UrlImportModal({
           </div>
           {error ? <div className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div> : null}
         </div>
-        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+        <div className="flex justify-end gap-2 border-t border-white/10 px-5 py-4">
           <button className="button-secondary" type="button" onClick={onCancel}>
             取消
           </button>

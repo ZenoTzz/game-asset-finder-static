@@ -37,18 +37,18 @@ export function AssetGrid({ assets, selectedId, onSelect }: AssetGridProps) {
 
   if (assets.length === 0) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white">
+      <div className="empty-state-dark">
         <div className="max-w-sm text-center">
           <ImageOff className="mx-auto text-slate-400" size={34} />
-          <h2 className="mt-3 text-base font-semibold text-slate-900">还没有匹配的素材</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-500">拖拽图片到页面，或通过图片 URL 导入后再搜索筛选。</p>
+          <h2 className="mt-3 text-base font-semibold text-white">还没有匹配的素材</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-400">拖拽图片到页面，或通过图片 URL 导入后再搜索筛选。</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div className="masonry-grid">
       {columns.map((asset) => (
         <button
           key={asset.id}
@@ -62,10 +62,10 @@ export function AssetGrid({ assets, selectedId, onSelect }: AssetGridProps) {
           <div className="space-y-2 p-3 text-left">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-slate-950">
+                <div className="truncate text-sm font-semibold text-white">
                   {asset.gameChinese || asset.gameEnglish || '未命名游戏'}
                 </div>
-                <div className="truncate text-xs text-slate-500">{asset.originalName}</div>
+                <div className="truncate text-xs text-slate-400">{asset.originalName}</div>
               </div>
               <span className="shrink-0 rounded bg-teal-50 px-1.5 py-0.5 text-[11px] font-medium text-teal-700">
                 {asset.ratioCategory}
