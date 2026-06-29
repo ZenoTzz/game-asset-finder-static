@@ -1,6 +1,12 @@
-import { ExternalLink, Globe2, ImageDown, Search } from 'lucide-react'
+import { ExternalLink, Globe2, ImageDown, Search, Wand2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { buildExternalSearchLinks, downloadImageToLocalLibrary, fetchPageImages, searchNetworkImages } from '../lib/networkSearch'
+import {
+  buildExternalSearchLinks,
+  downloadImageToLocalLibrary,
+  fetchPageImages,
+  resolveImageVariants,
+  searchNetworkImages,
+} from '../lib/networkSearch'
 import type { NetworkImageResult, NetworkSearchProvider } from '../types'
 
 interface NetworkSearchPanelProps {
@@ -14,6 +20,7 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
   const [providers, setProviders] = useState<NetworkSearchProvider[]>([])
   const [mode, setMode] = useState<'local' | 'static' | 'unknown'>('unknown')
   const [pageUrl, setPageUrl] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -31,7 +38,9 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
       if (response.mode === 'static') {
         setNotice('本地采集服务未启动，已降级到静态公开源搜索。运行 npm run dev:local 可启用 Steam、Google CSE、IGDB 和本地下载。')
       }
-      if (response.results.length === 0) setError('没有找到可导入图片。请尝试英文名、press kit、official screenshots，或配置 Google CSE / IGDB。')
+      if (response.results.length === 0) {
+        setError('没有找到可导入图片。建议尝试英文名、press kit、official screenshots，或配置 Google CSE / IGDB。')
+      }
     } catch (searchError) {
       setError(searchError instanceof Error ? searchError.message : '网络搜索失败')
     } finally {
@@ -49,11 +58,47 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
       setMode('local')
       setResults(next)
       setProviders([{ id: 'page-parser', label: 'Page parser', enabled: true }])
-      if (next.length === 0) setError('这个页面没有提取到图片候选。可能是登录页、强反爬页面，或图片由复杂脚本延迟加载。')
+      if (next.length === 0) {
+        setError('这个页面没有提取到图片候选。可能是登录页、强反爬页面，或图片由复杂脚本延迟加载。')
+      }
     } catch (parseError) {
       setError(parseError instanceof Error ? parseError.message : '页面解析失败')
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function runImageResolve() {
+    if (!imageUrl.trim()) return
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      const next = await resolveImageVariants(imageUrl.trim())
+      setMode('local')
+      setResults(next)
+      setProviders([{ id: 'steam-resolver', label: 'Steam asset resolver', enabled: true }])
+      if (next.length === 0) {
+        setError('没有找到更大的官方候选图。这个链接可能不是 Steam 图片，或该游戏没有公开 sibling 素材。')
+      } else {
+        setNotice('已按尺寸、官方来源和素材类型排序。Steam header 通常没有真正的无损母版，这里展示的是同一 App 的更大官方候选图。')
+      }
+    } catch (resolveError) {
+      setError(resolveError instanceof Error ? resolveError.message : '大图候选解析失败')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function downloadResult(result: NetworkImageResult) {
+    setError('')
+    setNotice('')
+    try {
+      const downloaded = await downloadImageToLocalLibrary(result.imageUrl, result.pageUrl, result.title)
+      onImportUrl(downloaded.localUrl, result.pageUrl, result.title)
+      setNotice(`已下载到本地：${downloaded.localPath}`)
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : '本地下载失败')
     }
   }
 
@@ -67,7 +112,7 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
           </div>
           <h2 className="mt-3 text-[35px] font-light leading-tight text-white">本地采集全网官方素材</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-            本地 Node 服务会优先搜索 Steam 官方素材，并可通过 .env 启用 Google CSE 与 IGDB。图片下载由本地服务完成，保存到 library/images，再导入浏览器素材库。
+            本地服务优先检索 Steam 官方素材，也可以解析 press kit 页面、Steam 图片 URL 的大图候选，并把图片下载到本机 library/images 后再导入浏览器素材库。
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="tag-muted">{mode === 'local' ? 'Local API active' : mode === 'static' ? 'Static fallback' : 'Ready'}</span>
@@ -101,7 +146,23 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
       </section>
 
       {notice ? <div className="notice-warning">{notice}</div> : null}
-      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+
+      <section className="grid gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 xl:grid-cols-2">
+        <label className="field-label">
+          Steam 图片 URL 找大图候选
+          <div className="mt-2 flex gap-2">
+            <input
+              className="field-input"
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              placeholder="https://shared.akamai.steamstatic.com/.../header.jpg"
+            />
+            <button className="button-secondary shrink-0" type="button" onClick={runImageResolve} disabled={busy}>
+              <Wand2 size={15} />
+              找大图
+            </button>
+          </div>
+        </label>
         <label className="field-label">
           解析官方页面 / press kit URL
           <div className="mt-2 flex gap-2">
@@ -117,9 +178,10 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
           </div>
         </label>
       </section>
+
       <section className="external-links">
         {links.map((link) => (
-          <a key={link.label} className="external-link" href={link.url} target="_blank">
+          <a key={link.label} className="external-link" href={link.url} target="_blank" rel="noreferrer">
             {link.label}
             <ExternalLink size={14} />
           </a>
@@ -131,7 +193,7 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
       <section className="masonry-grid">
         {results.map((result) => (
           <article className="network-card" key={result.id}>
-            <a className="network-image-frame" href={result.pageUrl} target="_blank" title="打开来源页面">
+            <a className="network-image-frame" href={result.pageUrl} target="_blank" rel="noreferrer" title="打开来源页面">
               <img
                 className="h-full w-full object-cover"
                 src={result.thumbUrl}
@@ -146,34 +208,22 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
             <div className="space-y-3 p-3">
               <div>
                 <h3 className="line-clamp-2 text-sm font-semibold text-white">{result.title}</h3>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs leading-5 text-slate-400">
                   {result.sourceName}
                   {result.official ? ' · 官方/平台源' : ''}
                   {result.provider ? ` · ${result.provider}` : ''}
                   {result.width && result.height ? ` · ${result.width} x ${result.height}` : ''}
+                  {result.byteSize ? ` · ${formatBytes(result.byteSize)}` : ''}
                   {result.license ? ` · ${result.license}` : ''}
                 </p>
+                {result.variantReason ? <p className="mt-1 text-xs leading-5 text-slate-500">{result.variantReason}</p> : null}
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  className="button-primary h-10 px-4 text-xs"
-                  type="button"
-                  onClick={async () => {
-                    setError('')
-                    setNotice('')
-                    try {
-                      const downloaded = await downloadImageToLocalLibrary(result.imageUrl, result.pageUrl, result.title)
-                      onImportUrl(downloaded.localUrl, result.pageUrl, result.title)
-                      setNotice(`已下载到本地：${downloaded.localPath}`)
-                    } catch (downloadError) {
-                      setError(downloadError instanceof Error ? downloadError.message : '本地下载失败')
-                    }
-                  }}
-                >
+                <button className="button-primary h-10 px-4 text-xs" type="button" onClick={() => downloadResult(result)}>
                   <ImageDown size={14} />
                   下载导入
                 </button>
-                <a className="button-secondary h-10 px-4 text-xs" href={result.imageUrl} target="_blank">
+                <a className="button-secondary h-10 px-4 text-xs" href={result.imageUrl} target="_blank" rel="noreferrer">
                   原图
                   <ExternalLink size={13} />
                 </a>
@@ -187,9 +237,15 @@ export function NetworkSearchPanel({ query, onQueryChange, onImportUrl }: Networ
         <div className="empty-state-dark">
           <Globe2 size={34} />
           <h2>输入关键词搜索官方素材和全网图片</h2>
-          <p>建议同时尝试英文名、official press kit、key art、screenshot、wallpaper 等关键词。</p>
+          <p>也可以粘贴 Steam 图片 URL，直接查找同一 App 下更大的官方素材候选。</p>
         </div>
       ) : null}
     </div>
   )
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }

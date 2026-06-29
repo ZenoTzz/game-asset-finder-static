@@ -3,6 +3,7 @@ import crypto from 'node:crypto'
 import 'dotenv/config'
 import express from 'express'
 import fs from 'node:fs/promises'
+import { imageSize } from 'image-size'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -24,6 +25,7 @@ app.get('/api/health', (_req, res) => {
     mode: 'local',
     providers: {
       steam: true,
+      steamAssetResolver: true,
       pageParser: true,
       googleCse: Boolean(process.env.GOOGLE_CSE_API_KEY && process.env.GOOGLE_CSE_CX),
       igdb: Boolean(process.env.IGDB_CLIENT_ID && process.env.IGDB_CLIENT_SECRET),
@@ -53,6 +55,16 @@ app.get('/api/search', async (req, res) => {
     })
   } catch (error) {
     res.status(500).json({ error: errorMessage(error) })
+  }
+})
+
+app.post('/api/resolve-image', async (req, res) => {
+  try {
+    const imageUrl = requireUrl(req.body?.imageUrl)
+    const results = await resolveImageVariants(imageUrl)
+    res.json({ results: dedupeResults(results).sort((a, b) => scoreResult(b) - scoreResult(a)) })
+  } catch (error) {
+    res.status(400).json({ error: errorMessage(error) })
   }
 })
 
@@ -127,34 +139,136 @@ async function searchSteam(query) {
 }
 
 async function fetchSteamAppMedia(item) {
+  const appid = String(item.id)
   const response = await fetch(`https://store.steampowered.com/api/appdetails?${new URLSearchParams({
-    appids: String(item.id),
-    filters: 'basic,screenshots,header_image',
+    appids: appid,
+    filters: 'basic,screenshots,header_image,background,background_raw',
     l: 'english',
     cc: 'US',
   })}`, { headers: defaultHeaders('https://store.steampowered.com') })
   if (!response.ok) return []
   const data = await response.json()
-  const appData = data?.[item.id]?.data
+  const appData = data?.[appid]?.data
   if (!appData) return []
 
   const base = {
     sourceName: 'Steam',
-    pageUrl: `https://store.steampowered.com/app/${item.id}`,
+    pageUrl: `https://store.steampowered.com/app/${appid}`,
     official: true,
     provider: 'steam',
     gameName: appData.name || item.name,
     license: 'Store promotional media',
   }
   const results = []
-  if (appData.header_image) {
-    results.push(makeResult({ ...base, title: `${base.gameName} header`, imageUrl: appData.header_image }))
+  const add = (title, imageUrl, width, height, variant) => {
+    if (imageUrl) results.push(makeResult({ ...base, title, imageUrl, width, height, variant }))
   }
+
+  add(`${base.gameName} header`, appData.header_image, 460, 215, 'steam-header')
+  add(`${base.gameName} capsule`, appData.capsule_image, 231, 87, 'steam-capsule')
+  add(`${base.gameName} background`, appData.background_raw || appData.background, undefined, undefined, 'steam-background')
+
+  for (const sibling of await findSteamSiblingAssets(appid, appData.header_image)) {
+    add(`${base.gameName} ${sibling.label}`, sibling.url, sibling.width, sibling.height, sibling.variant)
+  }
+
   for (const screenshot of appData.screenshots || []) {
     const imageUrl = screenshot.path_full || screenshot.path_thumbnail
-    if (imageUrl) results.push(makeResult({ ...base, title: `${base.gameName} screenshot`, imageUrl }))
+    add(`${base.gameName} screenshot`, imageUrl, 1920, 1080, 'steam-screenshot')
   }
-  return results
+  return dedupeResults(results)
+}
+
+async function resolveImageVariants(imageUrl) {
+  const steam = parseSteamAppUrl(imageUrl)
+  if (!steam) throw new Error('目前只支持解析 Steam / steamstatic 图片 URL 的大图候选')
+
+  const detailsResponse = await fetch(`https://store.steampowered.com/api/appdetails?${new URLSearchParams({
+    appids: steam.appid,
+    filters: 'basic,screenshots,header_image,background,background_raw',
+    l: 'english',
+    cc: 'US',
+  })}`, { headers: defaultHeaders('https://store.steampowered.com') })
+  const details = detailsResponse.ok ? await detailsResponse.json() : {}
+  const appData = details?.[steam.appid]?.data || {}
+  const pageUrl = `https://store.steampowered.com/app/${steam.appid}`
+  const gameName = appData.name || `Steam App ${steam.appid}`
+
+  const candidates = new Map()
+  const add = (url, label, width, height, variant, reason) => {
+    if (!url) return
+    const normalized = normalizeUrl(url)
+    if (!candidates.has(normalized)) candidates.set(normalized, { url: normalized, label, width, height, variant, reason })
+  }
+
+  add(imageUrl, '输入图片', undefined, undefined, 'steam-input', '你粘贴的原始 URL')
+  add(appData.header_image, '商店头图', 460, 215, 'steam-header', 'Steam appdetails 暴露的 header_image')
+  add(appData.capsule_image, '横向胶囊图', 231, 87, 'steam-capsule', 'Steam appdetails 暴露的 capsule_image')
+  add(appData.background_raw || appData.background, '商店背景图', undefined, undefined, 'steam-background', 'Steam appdetails 暴露的 background_raw/background')
+
+  for (const sibling of await findSteamSiblingAssets(steam.appid, imageUrl)) {
+    add(sibling.url, sibling.label, sibling.width, sibling.height, sibling.variant, '同一 Steam App CDN 目录下可访问的官方素材文件')
+  }
+
+  for (const screenshot of appData.screenshots || []) {
+    add(screenshot.path_full || screenshot.path_thumbnail, '1920x1080 截图', 1920, 1080, 'steam-screenshot', 'Steam appdetails 暴露的官方截图')
+  }
+
+  const enriched = await Promise.all(Array.from(candidates.values()).map(async (candidate) => {
+    const info = await fetchImageInfo(candidate.url)
+    if (!info.ok) return null
+    return makeResult({
+      title: `${gameName} ${candidate.label}`,
+      sourceName: 'Steam',
+      pageUrl,
+      imageUrl: candidate.url,
+      thumbUrl: candidate.url,
+      width: info.width || candidate.width,
+      height: info.height || candidate.height,
+      mimeType: info.mimeType,
+      byteSize: info.byteSize,
+      provider: 'steam-resolver',
+      official: true,
+      license: 'Store promotional media',
+      variant: candidate.variant,
+      variantReason: candidate.reason,
+    })
+  }))
+  return enriched.filter(Boolean)
+}
+
+async function findSteamSiblingAssets(appid, sourceUrl) {
+  const parsed = parseSteamAppUrl(sourceUrl)
+  const roots = new Set([
+    `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/`,
+    `https://store.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/`,
+  ])
+  if (parsed?.assetDir) roots.add(parsed.assetDir)
+
+  const assetNames = [
+    { name: 'capsule_616x353.jpg', label: '616x353 胶囊图', width: 616, height: 353, variant: 'steam-capsule-large' },
+    { name: 'library_hero.jpg', label: 'library hero', width: 3840, height: 1240, variant: 'steam-library-hero' },
+    { name: 'library_600x900.jpg', label: '竖版 library 封面', width: 600, height: 900, variant: 'steam-library-cover' },
+    { name: 'hero_capsule.jpg', label: 'hero capsule', variant: 'steam-hero-capsule' },
+    { name: 'page_bg_raw.jpg', label: '原始背景图', variant: 'steam-page-bg-raw' },
+    { name: 'page_bg_generated_v6b.jpg', label: '页面背景图', variant: 'steam-page-bg' },
+    { name: 'page_bg_generated.jpg', label: '页面背景图', variant: 'steam-page-bg' },
+    { name: 'logo.png', label: '透明 logo', variant: 'steam-logo' },
+    { name: 'library_logo.png', label: 'library logo', variant: 'steam-library-logo' },
+  ]
+
+  const candidates = []
+  for (const root of roots) {
+    for (const asset of assetNames) {
+      candidates.push({ ...asset, url: root + asset.name })
+    }
+  }
+
+  const probed = await Promise.all(candidates.map(async (candidate) => {
+    const info = await fetchImageInfo(candidate.url)
+    return info.ok ? { ...candidate, width: info.width || candidate.width, height: info.height || candidate.height } : null
+  }))
+  return probed.filter(Boolean)
 }
 
 async function searchGoogleCse(query) {
@@ -275,6 +389,36 @@ function extractPageImages(html, pageUrl) {
   return Array.from(candidates.values())
 }
 
+async function fetchImageInfo(url) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        ...defaultHeaders(url),
+        Range: 'bytes=0-131071',
+      },
+      redirect: 'follow',
+    })
+    if (!response.ok && response.status !== 206) return { ok: false }
+    const contentType = response.headers.get('content-type') || ''
+    if (!contentType.startsWith('image/')) return { ok: false }
+    const byteSize = Number(response.headers.get('content-range')?.match(/\/(\d+)$/)?.[1] || response.headers.get('content-length') || 0) || undefined
+    const buffer = Buffer.from(await response.arrayBuffer())
+    const dimensions = readImageDimensions(buffer)
+    return { ok: true, mimeType: contentType, byteSize, ...dimensions }
+  } catch {
+    return { ok: false }
+  }
+}
+
+function readImageDimensions(buffer) {
+  try {
+    const dimensions = imageSize(buffer)
+    return { width: dimensions.width, height: dimensions.height }
+  } catch {
+    return {}
+  }
+}
+
 function makeResult(input) {
   const imageUrl = input.imageUrl
   return {
@@ -288,8 +432,11 @@ function makeResult(input) {
     height: input.height,
     license: input.license,
     mimeType: input.mimeType,
+    byteSize: input.byteSize,
     provider: input.provider,
     official: Boolean(input.official),
+    variant: input.variant,
+    variantReason: input.variantReason,
   }
 }
 
@@ -305,11 +452,39 @@ function dedupeResults(results) {
 function scoreResult(result) {
   let score = 0
   if (result.official) score += 100
+  if (result.provider === 'steam-resolver') score += 70
   if (result.provider === 'steam') score += 60
   if (result.provider === 'google-cse') score += 40
-  if (/press|media|kit|screenshot|key/i.test(result.title)) score += 10
-  if (result.width && result.height) score += Math.min(20, Math.round((result.width * result.height) / 400000))
+  if (/library hero|background|1920|screenshot|key|art/i.test(`${result.title} ${result.variant || ''}`)) score += 20
+  if (/header|capsule_231|steam-input/i.test(`${result.title} ${result.variant || ''}`)) score -= 8
+  if (result.width && result.height) score += Math.min(80, Math.round((result.width * result.height) / 100000))
+  if (result.byteSize) score += Math.min(25, Math.round(result.byteSize / 100000))
   return score
+}
+
+function parseSteamAppUrl(url) {
+  try {
+    const parsed = new URL(url)
+    const match = parsed.pathname.match(/\/steam\/apps\/(\d+)\/(?:(?<hash>[a-f0-9]{20,})\/)?[^/]+$/i)
+    if (!match) return null
+    const appid = match[1]
+    const assetDir = match.groups?.hash
+      ? `${parsed.origin}${parsed.pathname.slice(0, parsed.pathname.lastIndexOf('/') + 1)}`
+      : ''
+    return { appid, assetDir }
+  } catch {
+    return null
+  }
+}
+
+function normalizeUrl(url) {
+  try {
+    const parsed = new URL(url)
+    parsed.search = ''
+    return parsed.href
+  } catch {
+    return url
+  }
 }
 
 function isOfficialHost(url) {

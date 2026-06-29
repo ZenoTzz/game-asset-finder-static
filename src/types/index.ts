@@ -114,8 +114,11 @@ export interface NetworkImageResult {
   height?: number
   license?: string
   mimeType?: string
+  byteSize?: number
   provider?: string
   official?: boolean
+  variant?: string
+  variantReason?: string
 }
 
 export interface NetworkSearchProvider {

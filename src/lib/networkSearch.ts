@@ -38,6 +38,17 @@ export async function downloadImageToLocalLibrary(
   return data as LocalDownloadRecord
 }
 
+export async function resolveImageVariants(imageUrl: string): Promise<NetworkImageResult[]> {
+  const response = await fetch(`${localApiBase}/api/resolve-image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl }),
+  })
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.error || `大图候选解析失败：${response.status}`)
+  return data.results ?? []
+}
+
 export async function fetchPageImages(pageUrl: string): Promise<NetworkImageResult[]> {
   const response = await fetch(`${localApiBase}/api/fetch-page-images`, {
     method: 'POST',
@@ -99,16 +110,16 @@ export async function searchCommonsImages(query: string): Promise<NetworkImageRe
     const info = page.imageinfo?.[0]
     if (!info?.url) continue
     results.push({
-        id: `commons-${page.pageid}`,
-        title: page.title.replace(/^File:/, ''),
-        sourceName: 'Wikimedia Commons',
-        pageUrl: info.descriptionurl ?? `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title)}`,
-        imageUrl: info.url,
-        thumbUrl: info.thumburl ?? info.url,
-        width: info.width,
-        height: info.height,
-        license: info.extmetadata?.LicenseShortName?.value,
-        mimeType: info.mime,
+      id: `commons-${page.pageid}`,
+      title: page.title.replace(/^File:/, ''),
+      sourceName: 'Wikimedia Commons',
+      pageUrl: info.descriptionurl ?? `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title)}`,
+      imageUrl: info.url,
+      thumbUrl: info.thumburl ?? info.url,
+      width: info.width,
+      height: info.height,
+      license: info.extmetadata?.LicenseShortName?.value,
+      mimeType: info.mime,
     })
   }
   return results
