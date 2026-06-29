@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #0f172a;
+  background: #f1f5f9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+@layer components {
+  .button-primary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md bg-teal-700 px-3 text-sm font-semibold text-white transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-700/20;
+  }
+
+  .button-secondary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-700/10;
+  }
+
+  .icon-button {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-700/10;
+  }
+
+  .field-label {
+    @apply block space-y-1.5 text-xs font-semibold text-slate-600;
+  }
+
+  .field-input {
+    @apply h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm font-normal text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/10;
+  }
+
+  textarea.field-input {
+    @apply h-auto py-2 leading-5;
+  }
+
+  .app-sidebar {
+    @apply sticky top-16 h-[calc(100vh-64px)] overflow-auto border-r border-slate-200 bg-white p-4;
+  }
+
+  .app-inspector {
+    @apply sticky top-16 h-[calc(100vh-64px)] overflow-auto border-l border-slate-200 bg-white p-4;
+  }
+
+  .asset-card {
+    @apply overflow-hidden rounded-md border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-700/20;
+  }
+
+  .asset-card-selected {
+    @apply border-teal-600 ring-2 ring-teal-700/15;
+  }
+
+  .tag-muted {
+    @apply rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600;
+  }
+
+  .preset-button {
+    @apply flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:border-teal-300 hover:bg-teal-50/40;
+  }
+
+  .preset-button-active {
+    @apply border-teal-600 bg-teal-50 font-semibold text-teal-900;
+  }
+}
+
+@media (max-width: 1120px) {
+  .app-sidebar,
+  .app-inspector {
+    position: static;
+    height: auto;
+  }
+}
